@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.djh.mapper.ActivityMapper">
+
+    <insert id="insertActivity">
+        insert into activity
+        (id, channel, name, start_time, end_time, description, type, discount, voucher, create_time, update_time)
+        values
+        (null, #{channel}, #{name}, #{startTime}, #{endTime}, #{description}, #{type}, #{discount}, #{voucher}, #{createTime}, #{updateTime})
+    </insert>
+
+    <delete id="deleteActivityById">
+        delete from activity where id = #{id}
+    </delete>
+
+    <update id="updateActivityById">
+        update activity
+        <set>
+            <if test="channel != null">channel = #{channel},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="discount != null">discount = #{discount},</if>
+            <if test="voucher != null">voucher = #{voucher},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="getActivityById" resultType="com.djh.entity.Activity">
+        select * from activity where id = #{id}
+    </select>
+
+    <select id="getActivityByType" resultType="com.djh.entity.Activity">
+        select * from activity
+        <where>
+            <if test="channel != null">
+                and channel = #{channel}
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+        </where>
+    </select>
+
+    <select id="getActivityByPage" resultType="com.djh.entity.Activity">
+        select * from activity
+        <where>
+            <if test="channel != null">
+                and channel = #{channel}
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+        </where>
+    </select>
+
+</mapper>

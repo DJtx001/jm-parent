@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.djh.mapper.CourseMapper">
+
+
+    <select id="getCourseBySubject" resultType="com.djh.entity.Course">
+        select * from courses
+        <where>
+        <if test="name != null and name !='' ">
+            and name like concat('%',#{name},'%')
+        </if>
+        <if test="subject != null">
+            and subject = #{subject}
+        </if>
+        <if test="target !=null">
+            and target = #{target}
+        </if>
+        </where>
+    </select>
+
+    <select id ="getCourseByPage" resultType="com.djh.entity.Course">
+        select * from courses
+        <where>
+        <if test = "name != null and name != ''">
+            and name = #{name}
+        </if>
+        <if test ="subject != null">
+            and subject = #{subject}
+        </if>
+        <if test="target != null">
+            and target = #{target}
+        </if>
+        </where>
+    </select>
+
+</mapper>
