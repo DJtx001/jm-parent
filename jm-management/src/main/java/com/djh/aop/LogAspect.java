@@ -2,7 +2,7 @@ package com.djh.aop;
 
 
 import com.djh.entity.OperateLog;
-import com.djh.mapper.OperateLogMapper;
+import com.djh.mq.OperateLogProducer;
 import com.djh.utils.CurrentUserHoler;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -17,7 +17,7 @@ import java.util.Arrays;
 public class LogAspect {
 
     @Autowired
-    private OperateLogMapper operateLogMapper;
+    private OperateLogProducer operateLogProducer;
 
     @Around(("@annotation(com.djh.anno.LogOperation)"))
     public Object aroundAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -33,7 +33,7 @@ public class LogAspect {
         // 计算耗时
         long costTime = System.currentTimeMillis() - startTime;
 
-        // 保存日志
+        // 组装日志
         OperateLog log = new OperateLog();
         log.setOperateUserId(CurrentUserHoler.getCurrentUser()); //操作用户
         log.setOperateTime(LocalDateTime.now()); // 操作时间
@@ -42,8 +42,9 @@ public class LogAspect {
         log.setMethodParams(methodParams); // 参数
         log.setReturnValue(result.toString()); // 返回值
         log.setCostTime(costTime); // 耗时
-            
-        operateLogMapper.insert(log);
+
+        // 异步落库：投递到消息队列，由消费者批量写库，不阻塞业务主流程
+        operateLogProducer.send(log);
         return result;
     }
     

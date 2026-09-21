@@ -27,3 +27,8 @@ clue:
     threshold-days: 7
     # 执行时间：每天凌晨 2 点
     cron: 0 0 2 * * ?
+
+operate:
+  log:
+    # 操作日志队列的消费间隔（毫秒）
+    consume-interval-ms: 5000

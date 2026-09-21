@@ -18,4 +18,15 @@
         order by ol.operate_time desc
     </select>
 
+    <!-- 批量插入操作日志：合并成一条 insert 语句，减少数据库往返次数 -->
+    <insert id="insertBatch">
+        insert into operate_log
+            (operate_user_id, operate_time, class_name, method_name, method_params, return_value, cost_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.operateUserId}, #{item.operateTime}, #{item.className}, #{item.methodName},
+             #{item.methodParams}, #{item.returnValue}, #{item.costTime})
+        </foreach>
+    </insert>
+
 </mapper>
