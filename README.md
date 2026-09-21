@@ -192,7 +192,7 @@ stateDiagram-v2
 | `customer` | 客户表（成交结果） | `phone`(唯一)、`business_id`(来源商机)、`course_id`、`degree`、`job_status` |
 | `activity` | 市场活动表 | `name`、`channel`、`start_time`、`end_time`、`type`(1折扣/2代金券)、`discount`、`voucher` |
 | `courses` | 课程表 | `name`、`subject`、`price`、`target`(适用人群) |
-| `user` | 用户表（销售/员工） | `username`(唯一)、`password`(MD5加盐)、`dept_id`、`role_id`、`status` |
+| `user` | 用户表（销售/员工） | `username`(唯一)、`password`(BCrypt)、`dept_id`、`role_id`、`status` |
 | `role` | 角色表 | `name`、`label`(角色标识，前端用于菜单权限) |
 | `department` | 部门表 | `name`(唯一)、`status` |
 | `operate_log` | 操作日志表（审计） | `operate_user_id`、`class_name`、`method_name`、`method_params`、`return_value`、`cost_time` |
@@ -293,7 +293,7 @@ erDiagram
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | `/users` | 用户分页查询 |
-| POST | `/users` | 新增用户（密码 MD5 加盐） |
+| POST | `/users` | 新增用户（密码用 BCrypt 加密存储） |
 | PUT | `/users` | 修改用户 |
 | DELETE | `/users/{ids}` | 批量删除用户 |
 | GET | `/roles` | 角色分页查询 |
@@ -436,7 +436,14 @@ server {
 
 ### 8.8 登录
 
-系统未内置初始账号，需先在 `user` 表中插入一条记录。密码为 **MD5(明文 + "djh")** 加盐存储，例如明文 `123456` 对应：
+系统未内置初始账号，**首次启动需要直接往 `user` 表插一条记录**（此时还没有 token，无法调 `POST /users`）。
+
+密码支持两种存储格式：
+
+- **BCrypt**（推荐）：通过 `POST /users` 接口新建用户时自动使用
+- **MD5 + 固定盐 `"djh"`**：系统早期的存储格式，仍然**兼容** —— 老账号照常登录，且登录成功后会自动升级为 BCrypt
+
+下面这条用 MD5 格式插入，明文密码为 `123456`：
 
 ```sql
 INSERT INTO `user`
@@ -445,6 +452,8 @@ VALUES
   ('admin', '558b1aa94403304b0f0ac1eae2884d9f', '管理员', '13800000000', 'admin@djh.com',
    1, 1, 3, 1, NOW(), NOW());
 ```
+
+> 用这个账号登录成功后，数据库里的密码会自动从 `558b1aa9...` 变成 `$2a$10$...`（BCrypt），之后照常登录。
 
 登录方式：`POST /login`，JSON 体 `{"username":"admin","password":"123456"}`。
 
