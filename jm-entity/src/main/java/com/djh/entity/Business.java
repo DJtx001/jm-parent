@@ -31,4 +31,24 @@ public class Business {
     private LocalDateTime nextTime; // 下次跟进时间
     private LocalDateTime createTime; // 创建时间
     private LocalDateTime updateTime; // 修改时间
+
+    //扩展 - 归属人姓名
+    @TableField(exist = false)
+    private String assignName;
+
+    //扩展 - 跟进记录列表
+    @TableField(exist = false)
+    private List<BusinessTrackRecord> trackRecords;
+
+    //扩展 - 跟进状态, 1:接通, 2:拒绝, 3:无人接听（仅跟进接口用）
+    @TableField(exist = false)
+    private Integer trackStatus;
+
+    //扩展 - 沟通重点（仅跟进接口用）
+    @TableField(exist = false)
+    private List<String> keyItems;
+
+    //扩展 - 沟通纪要（仅跟进接口用）
+    @TableField(exist = false)
+    private String record;
 }

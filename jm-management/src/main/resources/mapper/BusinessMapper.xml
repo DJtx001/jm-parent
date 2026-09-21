@@ -13,4 +13,124 @@
             count(if(status = 5, 1, null)) as business_convert_customer
         from business;
     </select>
+
+    <!-- 商机列表 -->
+    <select id="listBusinesses" resultType="com.djh.entity.Business">
+        select
+        b.*,
+        u.name as assign_name
+        from business b
+        left join user u on b.user_id = u.id
+        <where>
+            <if test="businessQueryDto.businessId != null">
+                and b.id = #{businessQueryDto.businessId}
+            </if>
+            <if test="businessQueryDto.name != null and businessQueryDto.name != ''">
+                and b.name like concat('%', #{businessQueryDto.name}, '%')
+            </if>
+            <if test="businessQueryDto.phone != null and businessQueryDto.phone != ''">
+                and b.phone like concat('%', #{businessQueryDto.phone}, '%')
+            </if>
+            <if test="businessQueryDto.status != null">
+                and b.status = #{businessQueryDto.status}
+            </if>
+            AND b.status not in (4,5)
+        </where>
+        order by b.update_time desc
+    </select>
+
+    <!-- 商机公海池列表 -->
+    <select id="listBusinessPool" resultType="com.djh.entity.Business">
+        select
+        *
+        from business
+        <where>
+            <if test="businessQueryDto.businessId != null">
+                and id = #{businessQueryDto.businessId}
+            </if>
+            <if test="businessQueryDto.name != null and businessQueryDto.name != ''">
+                and name like concat('%', #{businessQueryDto.name}, '%')
+            </if>
+            <if test="businessQueryDto.phone != null and businessQueryDto.phone != ''">
+                and phone like concat('%', #{businessQueryDto.phone}, '%')
+            </if>
+            <if test="businessQueryDto.subject != null">
+                and subject = #{businessQueryDto.subject}
+            </if>
+            AND status = 4
+        </where>
+        order by update_time desc
+    </select>
+
+    <!--定义ResultMap封装商机详情-->
+    <resultMap id="businessResultMap" type="com.djh.entity.Business">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="gender" column="gender"/>
+        <result property="age" column="age"/>
+        <result property="wechat" column="wechat"/>
+        <result property="qq" column="qq"/>
+        <result property="subject" column="subject"/>
+        <result property="courseId" column="course_id"/>
+        <result property="degree" column="degree"/>
+        <result property="jobStatus" column="job_status"/>
+        <result property="channel" column="channel"/>
+        <result property="remark" column="remark"/>
+        <result property="status" column="status"/>
+        <result property="userId" column="user_id"/>
+        <result property="clueId" column="clue_id"/>
+        <result property="nextTime" column="next_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <collection property="trackRecords" ofType="com.djh.entity.BusinessTrackRecord">
+            <id property="id" column="tr_id"/>
+            <result property="businessId" column="tr_business_id"/>
+            <result property="userId" column="tr_user_id"/>
+            <result property="trackStatus" column="tr_track_status"/>
+            <result property="keyItems" column="tr_key_items"/>
+            <result property="nextTime" column="tr_next_time"/>
+            <result property="record" column="tr_record"/>
+            <result property="createTime" column="tr_create_time"/>
+            <result property="assignName" column="tr_assign_name"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据ID查询商机跟进详细信息 -->
+    <select id="getBusinessById" resultMap="businessResultMap">
+        SELECT
+            b.id,
+            b.name,
+            b.phone,
+            b.gender,
+            b.age,
+            b.wechat,
+            b.qq,
+            b.subject,
+            b.course_id,
+            b.degree,
+            b.job_status,
+            b.channel,
+            b.remark,
+            b.status,
+            b.user_id,
+            b.clue_id,
+            b.next_time,
+            b.create_time,
+            b.update_time,
+            tr.id tr_id,
+            tr.business_id tr_business_id,
+            tr.user_id tr_user_id,
+            tr.track_status tr_track_status,
+            tr.key_items tr_key_items,
+            tr.next_time tr_next_time,
+            tr.record tr_record,
+            tr.create_time tr_create_time,
+            u.name tr_assign_name
+        FROM business b
+                 LEFT JOIN business_track_record tr ON b.id = tr.business_id
+                 LEFT JOIN user u ON tr.user_id = u.id
+        WHERE b.id = #{id}
+        ORDER BY tr.create_time DESC
+    </select>
 </mapper>

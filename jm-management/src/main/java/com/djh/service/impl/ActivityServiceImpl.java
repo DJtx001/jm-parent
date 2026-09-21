@@ -8,8 +8,6 @@ import com.djh.PageResult;
 import com.djh.entity.Activity;
 import com.djh.mapper.ActivityMapper;
 import com.djh.service.ActivityService;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,16 +51,16 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper,Activity> im
     }
 //根据页码查询活动
     @Override
-    public PageResult getActivityByPage(Integer type, Integer status, Integer page, Integer pageSize) {
-        PageHelper.startPage(page, pageSize);
+    public PageResult getActivityByPage(Integer channel, Integer type, Integer status, Integer page, Integer pageSize) {
         LambdaQueryWrapper<Activity> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(type != null, Activity::getType, type)
-        .gt(status != null && status == 1, Activity::getStartTime, LocalDateTime.now())
+        queryWrapper.eq(channel != null, Activity::getChannel, channel)
+                .eq(type != null, Activity::getType, type)
+                .gt(status != null && status == 1, Activity::getStartTime, LocalDateTime.now())
                 .le(status != null && status == 2, Activity::getStartTime, LocalDateTime.now())
                 .ge(status != null && status == 2, Activity::getEndTime, LocalDateTime.now())
                 .lt(status != null && status == 3, Activity::getEndTime, LocalDateTime.now())
                 .orderByDesc(Activity::getUpdateTime);
-        Page p = page(new Page(page, pageSize), queryWrapper);
+        Page<Activity> p = page(new Page<>(page, pageSize), queryWrapper);
         return new PageResult<>(p.getTotal(), p.getRecords());
     }
 }

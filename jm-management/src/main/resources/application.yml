@@ -19,3 +19,4 @@ aliyun:
   oss:
     endpoint: https://oss-cn-beijing.aliyuncs.com
     bucketName: java422-web-ai
+    region: cn-beijing

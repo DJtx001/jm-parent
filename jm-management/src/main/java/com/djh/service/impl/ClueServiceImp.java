@@ -3,10 +3,12 @@ package com.djh.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.djh.PageResult;
+import com.djh.dtp.ClueFalseDto;
 import com.djh.dtp.ClueQueryDto;
 import com.djh.entity.Business;
 import com.djh.entity.Clue;
 import com.djh.entity.ClueTrackRecord;
+import com.djh.exception.BusinessException;
 import com.djh.mapper.BusinessMapper;
 import com.djh.mapper.ClueMapper;
 import com.djh.mapper.ClueTrackRecordMapper;
@@ -34,6 +36,13 @@ public class ClueServiceImp extends ServiceImpl<ClueMapper, Clue> implements Clu
     @Override
     public Clue getClueById(Integer id) {
         return this.baseMapper.getClueById(id);
+    }
+
+    //    线索池分页查询：只查询待分配(未分配)的线索
+    @Override
+    public PageResult<Clue> listCluePool(ClueQueryDto clueQueryDto) {
+        Page<Clue> page = this.baseMapper.listCluePool(new Page<Clue>(clueQueryDto.getPage(), clueQueryDto.getPageSize()), clueQueryDto);
+        return new PageResult<Clue>(page.getTotal(), page.getRecords());
     }
 
     // 跟进线索：更新线索状态 + 新增跟进记录
@@ -73,6 +82,41 @@ public class ClueServiceImp extends ServiceImpl<ClueMapper, Clue> implements Clu
         trackRecord.setRecord(clue.getRecord());
         trackRecord.setNextTime(clue.getNextTime());
         trackRecord.setType(1); // 1:正常跟进
+        trackRecord.setCreateTime(now);
+        clueTrackRecordMapper.insert(trackRecord);
+    }
+
+    // 伪线索处理：更新线索状态 + 新增伪线索跟进记录
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markFalseClue(Integer id, ClueFalseDto clueFalseDto) {
+        // 1. 参数校验
+        if (id == null) {
+            throw new BusinessException("线索ID不能为空");
+        }
+
+        // 2. 查询原线索，确认存在
+        Clue existClue = this.getById(id);
+        if (existClue == null) {
+            throw new BusinessException("线索不存在, id=" + id);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 3. 更新线索状态为伪线索
+        Clue updateClue = new Clue();
+        updateClue.setId(id);
+        updateClue.setStatus(4); // 伪线索
+        updateClue.setUpdateTime(now);
+        this.updateById(updateClue);
+
+        // 4. 新增伪线索跟进记录
+        ClueTrackRecord trackRecord = new ClueTrackRecord();
+        trackRecord.setClueId(id);
+        trackRecord.setUserId(CurrentUserHoler.getCurrentUser()); //当前登录用户ID
+        trackRecord.setRecord(clueFalseDto.getRemark()); //伪线索的备注说明
+        trackRecord.setType(0); // 0:伪线索
+        trackRecord.setFalseReason(clueFalseDto.getReason());
         trackRecord.setCreateTime(now);
         clueTrackRecordMapper.insert(trackRecord);
     }

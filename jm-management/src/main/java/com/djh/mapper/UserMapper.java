@@ -16,10 +16,8 @@ public interface UserMapper {
     void insertUser(User user);
 //    删除 用户可以批量删除
     void deleteUser(List<Integer> ids);
-//    修改用户
+//    修改 用户
     void updateUser(User user);
-//    根据用户名查询用户
-    User getUserByUsername(String username);
     /**
      * 根据用户名查询用户信息
      */

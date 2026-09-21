@@ -2,6 +2,7 @@ package com.djh.controller;
 
 import com.djh.PageResult;
 import com.djh.Result;
+import com.djh.dtp.ClueFalseDto;
 import com.djh.dtp.ClueQueryDto;
 import com.djh.entity.Clue;
 import com.djh.service.ClueService;
@@ -76,6 +77,26 @@ public class ClueController{
         log.info("将线索转为商机, id: {}", id);
         clueService.convertToBusiness(id);
         return Result.success();
+    }
+
+    /**
+     * 伪线索处理
+     */
+    @PutMapping("/false/{id}")
+    public Result markFalseClue(@PathVariable Integer id, @RequestBody ClueFalseDto clueFalseDto) {
+        log.info("伪线索处理: 线索ID={}, 参数: {}", id, clueFalseDto);
+        clueService.markFalseClue(id, clueFalseDto);
+        return Result.success();
+    }
+
+    /**
+     * 线索池列表查询
+     */
+    @GetMapping("/pool")
+    public Result listCluePool(ClueQueryDto clueQueryDto) {
+        log.info("线索池查询参数: {}", clueQueryDto);
+        PageResult<Clue> pageResult = clueService.listCluePool(clueQueryDto);
+        return Result.success(pageResult);
     }
 }
 

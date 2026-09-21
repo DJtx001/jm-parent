@@ -16,8 +16,6 @@ public interface UserService {
     void deleteUser(List<Integer> ids);
 //    修改 用户
     void updateUser(User user);
-//    根据用户名查询用户
-    LoginResultVo getUserByUsername(User user);
 //    登入逻辑
     LoginResultVo login(String username, String password);
 }

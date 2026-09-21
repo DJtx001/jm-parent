@@ -17,5 +17,5 @@ public interface ActivityService extends IService<Activity> {
 
     List<Activity> getActivityByType(Integer type);
 
-    PageResult getActivityByPage(Integer channel, Integer type,Integer page, Integer pageSize);
+    PageResult getActivityByPage(Integer channel, Integer type, Integer status, Integer page, Integer pageSize);
 }

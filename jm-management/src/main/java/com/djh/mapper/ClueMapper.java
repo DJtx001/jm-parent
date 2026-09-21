@@ -14,6 +14,11 @@ public interface ClueMapper extends BaseMapper<Clue> {
      * 线索列表分页查询
      */
     Page<Clue> listClues(Page<Clue> cluePage, ClueQueryDto clueQueryDto);
+
+    /**
+     * 线索池列表分页查询
+     */
+    Page<Clue> listCluePool(Page<Clue> cluePage, ClueQueryDto clueQueryDto);
 //    根据Id查询线索跟进
     Clue getClueById(Integer id);
 

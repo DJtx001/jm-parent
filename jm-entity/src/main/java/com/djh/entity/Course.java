@@ -1,5 +1,6 @@
 package com.djh.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
  * 课程实体类
  */
 @Data
+@TableName("courses")
 public class Course {
 
     private Integer id; //课程id，主键

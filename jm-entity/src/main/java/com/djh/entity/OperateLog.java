@@ -1,5 +1,6 @@
 package com.djh.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -13,4 +14,7 @@ public class OperateLog {
     private String methodParams; //方法参数
     private String returnValue; //返回值
     private Long costTime; //耗时
+
+    @TableField(exist = false)
+    private String operateUserName; //操作用户姓名
 }

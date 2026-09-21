@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.djh.mapper.CustomerMapper">
+
+    <!-- 客户列表 -->
+    <select id="listCustomers" resultType="com.djh.entity.Customer">
+        select
+        c.*,
+        co.name as course_name
+        from customer c
+        left join courses co on c.course_id = co.id
+        <where>
+            <if test="customerQueryDto.phone != null and customerQueryDto.phone != ''">
+                and c.phone = #{customerQueryDto.phone}
+            </if>
+            <if test="customerQueryDto.name != null and customerQueryDto.name != ''">
+                and c.name like concat('%', #{customerQueryDto.name}, '%')
+            </if>
+            <if test="customerQueryDto.channel != null">
+                and c.channel = #{customerQueryDto.channel}
+            </if>
+            <if test="customerQueryDto.subject != null">
+                and c.subject = #{customerQueryDto.subject}
+            </if>
+        </where>
+        order by c.update_time desc
+    </select>
+</mapper>

@@ -26,7 +26,7 @@ public class ActivityController {
                                     @RequestParam(required = false, defaultValue = "1") Integer page,
                                     @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
-        PageResult<Activity> pageResult = activityService.getActivityByPage(channel, type, page, pageSize);
+        PageResult<Activity> pageResult = activityService.getActivityByPage(channel, type, status, page, pageSize);
         return Result.success(pageResult);
     }
 

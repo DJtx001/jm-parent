@@ -39,4 +39,8 @@ public class Clue {
     //扩展属性
     @TableField(exist = false)
     private String record;
+
+    //扩展字段-线索来源活动名称
+    @TableField(exist = false)
+    private String activityName;
 }

@@ -31,6 +31,28 @@
         order by c.update_time desc
     </select>
 
+    <!-- 线索池列表：只查询待分配(未分配)的线索 -->
+    <select id="listCluePool" resultType="com.djh.entity.Clue">
+        select
+        c.*,
+        a.name as activity_name
+        from clue c
+        left join activity a on c.activity_id = a.id
+        <where>
+            <if test="clueQueryDto.clueId != null">
+                and c.id = #{clueQueryDto.clueId}
+            </if>
+            <if test="clueQueryDto.phone != null and clueQueryDto.phone != ''">
+                and c.phone like concat('%', #{clueQueryDto.phone}, '%')
+            </if>
+            <if test="clueQueryDto.channel != null">
+                and c.channel = #{clueQueryDto.channel}
+            </if>
+            and c.status = 1
+        </where>
+        order by c.update_time desc
+    </select>
+
     <!--定义ResultMap封装线索详情-->
     <resultMap id="clueResultMap" type="com.djh.entity.Clue">
         <id property="id" column="id"/>
