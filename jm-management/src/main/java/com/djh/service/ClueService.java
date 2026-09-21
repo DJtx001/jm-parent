@@ -27,4 +27,12 @@ public interface ClueService extends IService<Clue> {
     void markFalseClue(Integer id, ClueFalseDto clueFalseDto);
 
     void convertToBusiness(Integer id);
+
+    /**
+     * 回收超时未跟进的线索：状态改为待分配、释放归属人，回到线索池
+     *
+     * @param thresholdDays 超过多少天未跟进
+     * @return 实际回收的条数
+     */
+    int recycleTimeoutClues(int thresholdDays);
 }

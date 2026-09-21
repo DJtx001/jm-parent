@@ -1,5 +1,6 @@
 package com.djh.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.djh.PageResult;
@@ -147,5 +148,25 @@ public class ClueServiceImp extends ServiceImpl<ClueMapper, Clue> implements Clu
 
         // 4. 插入商机记录
         businessMapper.insert(business);
+    }
+
+    // 自动回收超时未跟进的线索：回到线索池（待分配）并释放归属人
+    @Override
+    public int recycleTimeoutClues(int thresholdDays) {
+        LocalDateTime now = LocalDateTime.now();
+        // 截止时间：最后跟进时间早于该时间即视为超时
+        LocalDateTime deadline = now.minusDays(thresholdDays);
+
+        LambdaUpdateWrapper<Clue> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(Clue::getStatus, 1)        // 1:待分配，回到线索池
+                .set(Clue::getUserId, null)          // 释放归属人，其他销售可以领取
+                .set(Clue::getNextTime, null)        // 清空下次跟进时间
+                .set(Clue::getUpdateTime, now)
+                .eq(Clue::getStatus, 3)              // 只回收「跟进中」的线索，待跟进/伪线索/已转商机不动
+                // 有下次跟进时间的按它判断，没填的退化为按最后更新时间判断
+                .and(w -> w.lt(Clue::getNextTime, deadline)
+                        .or(n -> n.isNull(Clue::getNextTime).lt(Clue::getUpdateTime, deadline)));
+
+        return this.baseMapper.update(null, updateWrapper);
     }
 }

@@ -20,3 +20,10 @@ aliyun:
     endpoint: https://oss-cn-beijing.aliyuncs.com
     bucketName: java422-web-ai
     region: cn-beijing
+
+clue:
+  recycle:
+    # 超过多少天未跟进，自动回收到线索池
+    threshold-days: 7
+    # 执行时间：每天凌晨 2 点
+    cron: 0 0 2 * * ?

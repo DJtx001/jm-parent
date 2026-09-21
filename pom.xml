@@ -88,6 +88,13 @@
                 <version>3.5.8</version>
             </dependency>
 
+            <!-- Redisson：分布式锁。只引核心包，避免 starter 覆盖 Spring Boot 原有的 Redis 连接工厂 -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>3.27.2</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-annotation</artifactId>
