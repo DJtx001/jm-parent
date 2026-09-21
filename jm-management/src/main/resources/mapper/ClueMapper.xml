@@ -15,7 +15,7 @@
                 and c.id = #{clueQueryDto.clueId}
             </if>
             <if test="clueQueryDto.phone != null and clueQueryDto.phone != ''">
-                and c.phone like '%${clueQueryDto.phone}%'
+                and c.phone like concat('%', #{clueQueryDto.phone}, '%')
             </if>
             <if test="clueQueryDto.status != null">
                 and c.status = #{clueQueryDto.status}

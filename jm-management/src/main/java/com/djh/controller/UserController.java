@@ -29,8 +29,8 @@ public class UserController {
 //添加 用户
 @LogOperation
     @PostMapping()
-    public Result insertUser(User user){
-        log.error("进入用户添加接口",user);
+    public Result insertUser(@RequestBody User user){
+        log.info("进入用户添加接口");
         userService.insertUser(user);
         return Result.success();
     }

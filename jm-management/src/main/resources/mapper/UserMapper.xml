@@ -25,8 +25,8 @@
     </select>
 <!--增加 用户-->
     <insert id = "insertUser">
-        insert into user(username,name,phone,email,gender,status,dept_id,role_id,image,remark,create_time,update_time)
-        values(#{username},#{name},#{phone},#{email},#{gender},#{status},#{deptId},#{roleId},#{image},#{remark},#{createTime},#{updateTime})
+        insert into user(username,password,name,phone,email,gender,status,dept_id,role_id,image,remark,create_time,update_time)
+        values(#{username},#{password},#{name},#{phone},#{email},#{gender},#{status},#{deptId},#{roleId},#{image},#{remark},#{createTime},#{updateTime})
     </insert>
 <!--    删除用户-->
     <delete id="deleteUser">
@@ -43,6 +43,9 @@
         <set>
             <if test ="username != null">
                 username = #{username},
+            </if>
+            <if test ="password != null and password != ''">
+                password = #{password},
             </if>
             <if test ="name != null">
                 name = #{name},
