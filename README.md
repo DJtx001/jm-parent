@@ -28,7 +28,10 @@
 | 数据库 | MySQL | 8.4.5 | 连接驱动 `com.mysql.cj.jdbc.Driver` |
 | 连接池 | HikariCP | - | Spring Boot 默认 |
 | 缓存/队列 | Redis + Spring Data Redis | 7.2.3 / Lettuce | 首页概览缓存、异步日志队列 |
+| 分布式锁 | Redisson | 3.27.2 | 定时任务多实例互斥 |
+| 密码加密 | Spring Security Crypto | - | BCrypt（兼容历史 MD5 平滑迁移） |
 | 鉴权 | JWT (jjwt) | 0.9.1 | 无状态令牌 |
+| 任务调度 | Spring Scheduling | - | 线索超时回收、日志队列消费 |
 | 对象存储 | 阿里云 OSS SDK | 3.17.4 | 文件上传 |
 | 日志 | Logback + AOP | - | 操作日志切面记录入库 |
 | 前端 | Vue3 + ElementPlus | - | 编译产物由 Nginx 托管 |
@@ -42,8 +45,11 @@
 ```
 jm-parent/                                   父工程（统一依赖版本管理）
 ├── pom.xml                                  dependencyManagement 统一版本
+├── README.md                                项目说明（架构 / 表设计 / 接口清单 / 启动步骤）
 ├── db/
 │   └── schema.sql                           建库建表脚本（11 张表）
+├── docs/
+│   └── 项目亮点与实现方法.md                 进阶能力详解 + 面试追问与答法（学习/面试用）
 ├── jm-common/                               通用模块
 │   └── src/main/java/
 │       ├── com/djh/Result.java              统一响应封装
@@ -64,9 +70,11 @@ jm-parent/                                   父工程（统一依赖版本管�
 │       │   ├── filter/                      Filter 方案（已弃用，保留参考）
 │       │   ├── aop/                         LogAspect 操作日志切面
 │       │   ├── anno/                        @LogOperation 自定义注解
-│       │   ├── config/                      WebConfig、MybatisConfig、...
+│       │   ├── mq/                          操作日志生产者 / 消费者（Redis 队列）
+│       │   ├── task/                        定时任务（线索超时回收）
+│       │   ├── config/                      WebConfig、MybatisConfig、RedissonConfig
 │       │   ├── exception/                   全局异常处理
-│       │   └── utils/                       CurrentUserHoler（ThreadLocal）
+│       │   └── utils/                       CurrentUserHoler、PasswordUtils
 │       └── resources/
 │           ├── application.yml              数据源/MyBatis-Plus/Redis/OSS 配置
 │           └── mapper/*.xml                 MyBatis XML（多表关联 SQL）
@@ -368,6 +376,25 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 ```
 
+### 8.5.1 业务可调参数
+
+`application.yml` 末尾还有两组业务配置，可按需调整：
+
+```yaml
+clue:
+  recycle:
+    threshold-days: 7        # 超过 N 天未跟进的线索自动回收到线索池
+    cron: 0 0 2 * * ?        # 回收任务执行时间（默认每天凌晨 2 点）
+
+operate:
+  log:
+    consume-interval-ms: 5000  # 操作日志队列的消费间隔（毫秒）
+```
+
+> 调试技巧：定时任务可以用命令行参数临时覆盖 cron，无需修改配置文件。
+> 例如让回收任务每 20 秒跑一次：
+> `java -jar xxx.jar "--clue.recycle.cron=0/20 * * * * ?"`
+
 ### 8.6 构建与启动
 
 ```bash
@@ -436,6 +463,9 @@ curl http://localhost:8080/clues?page=1&pageSize=10 -H "token: <上一步返回�
 ---
 
 ## 九、项目亮点与实现思路
+
+> 每个亮点更详细的「问题背景 → 实现思路 → 关键代码 → 实测结果 → 面试追问怎么答」，
+> 见 [`docs/项目亮点与实现方法.md`](docs/项目亮点与实现方法.md)
 
 ### 9.1 ★ 自研 Spring Boot Starter（阿里云 OSS）
 
@@ -511,18 +541,113 @@ MyBatis-Plus 默认把实体类名转小写当表名（`Course` → `course`）�
 
 > 注意：只有**走 MyBatis-Plus 内置方法**的实体才需要；像 `DeptMapper` 那样全部手写 SQL 的，不需要加。
 
+### 9.8 定时任务 + Redisson 分布式锁：线索超时自动回收
+
+**业务问题**：线索分配给销售后，如果长期无人跟进，会一直占着归属人不放，其他销售也接手不了，形成"僵尸线索"。
+
+**解决思路**：`ClueRecycleTask` 每天凌晨 2 点扫描「跟进中」且超过 N 天未跟进的线索，把它们回收到线索池：
+
+```sql
+-- 一条 UPDATE 完成回收
+update clue
+set status = 1,        -- 回到「待分配」
+    user_id = null,    -- 释放归属人
+    next_time = null,
+    update_time = now()
+where status = 3
+  and ((next_time is not null and next_time < 截止时间)
+    or (next_time is null and update_time < 截止时间))
+```
+
+**关键点 —— 为什么要分布式锁**：
+
+定时任务在**多实例部署**时会同时触发，N 个实例同时执行同一条 UPDATE 会造成重复处理。用 Redisson 的 `RLock` 保证同一时刻只有一个实例真正执行：
+
+```java
+RLock lock = redissonClient.getLock("lock:clue:recycle");
+// 等待时间传 0：拿不到锁立即返回，不阻塞线程
+boolean locked = lock.tryLock(0, 60, TimeUnit.SECONDS);
+if (!locked) { log.info("未获取到分布式锁，跳过本次"); return; }
+try {
+    clueService.recycleTimeoutClues(thresholdDays);
+} finally {
+    if (lock.isHeldByCurrentThread()) { lock.unlock(); }  // 只允许持有者释放
+}
+```
+
+**Redisson 锁的底层**：它是一段 Lua 脚本在 Redis 上原子执行的 —— `hash` 结构存 `客户端UUID:线程ID → 重入次数`，配合"看门狗"自动续期。相比手写 `SET NX`，它天然支持**可重入**、**自动续期**、**防止误删别人的锁**。
+
+**工程细节**：`RedissonConfig` 手动装配 `RedissonClient`，刻意不用 `redisson-spring-boot-starter`——starter 会注册自己的 `RedissonConnectionFactory` 并覆盖 Spring Boot 原有的 Lettuce 连接工厂，影响项目里已有的 Redis 用法。同时该 Bean 标注 `@Lazy`，避免 Redis 未启动时应用直接启动失败。
+
+### 9.9 缓存三层防护：穿透 / 击穿 / 雪崩
+
+首页概览接口是典型的「计算耗时、变化不频繁」场景，但直接用缓存会遇到三大经典问题。本项目逐个做了防护：
+
+| 问题 | 现象 | 本项目的解法 |
+|------|------|-------------|
+| **缓存穿透** | 查一个数据库里也没有的数据，请求每次都打到 DB | 数据库查不到时缓存一个**空值占位符**（`__NULL__`），过期时间设短（30 秒） |
+| **缓存击穿** | 热点 key 失效的瞬间，大量并发请求同时涌向 DB | 用 Redis `setIfAbsent` 做**互斥锁**，只让一个线程查库重建，其余线程短暂自旋等待 |
+| **缓存雪崩** | 大量缓存同一时刻集体失效，DB 瞬时压力飙升 | 过期时间 = 基础 5 分钟 + **随机 0~60 秒**，打散失效时刻 |
+
+**防击穿的核心代码**（含双重检查）：
+
+```java
+Boolean locked = redisTemplate.opsForValue()
+        .setIfAbsent(REBUILD_LOCK_KEY, "1", 10, TimeUnit.SECONDS);
+if (Boolean.TRUE.equals(locked)) {
+    try {
+        // 双重检查：抢锁期间缓存可能已被别的线程重建好了
+        Object cached = readCache();
+        if (cached != null) { return resolve(cached); }
+        return loadFromDbAndCache();
+    } finally {
+        redisTemplate.delete(REBUILD_LOCK_KEY);
+    }
+}
+// 没抢到锁 → 自旋等待，避免所有线程一起查库
+```
+
+**实测效果**：清空缓存后并发发起 10 个请求，服务器日志显示**只有 1 次**「缓存未命中，查询数据库并重建缓存」，其余 9 次都是「等待其他线程重建缓存后命中」。
+
+### 9.10 操作日志异步化：队列 + 批量落库
+
+**业务问题**：`@LogOperation` 切面原本是**同步**写库的（`operateLogMapper.insert(log)`），意味着每次带注解的请求，用户都要等日志写完才能拿到响应；而且每条日志一次 `insert`，就是一次数据库往返。
+
+**改造思路**：把「写日志」从主流程里摘出来，变成异步：
+
+```
+业务方法执行完
+   ↓
+生产者：日志转 JSON → LPUSH 到 Redis 队列 QUEUE:OPERATE_LOG   （主流程立即返回）
+   ↓
+消费者：定时任务每 5 秒 RPOP 一批（最多 100 条）
+   ↓
+      反序列化 → 一条 insert 批量落库
+```
+
+**三个收益（也是面试可讲的点）**：
+
+1. **异步解耦**：主流程不再等日志落库，接口响应更快
+2. **削峰填谷**：突发流量下日志先堆在队列里，消费者按自己的节奏慢慢消化
+3. **批量写优化**：一条 `insert into ... values (...),(...)` 替代 N 次 `insert`，把 N 次数据库往返压缩成 1 次
+
+**降级设计**：如果 Redis 不可用，生产者会 `catch` 住异常并**回退为同步落库**，保证「日志不丢 + 业务不受影响」，这也是为什么改造后原有功能完全不受影响。
+
+**工程取舍说明**：本项目用 **Redis List** 实现轻量消息队列（`LPUSH` 入队 + `RPOP` 出队 + 定时批量消费），而不是引入 RabbitMQ —— 因为**当前环境没有 MQ 中间件**，引入后如果 broker 不可用反而会让日志切面每次调用都失败。语义上异步/解耦/削峰完全一致；将来要换成 RabbitMQ，只需替换生产者的投递方法与消费者的拉取方法，业务代码零改动。
+
 ---
 
 ## 十、已知待改进项
 
 | 问题 | 影响 | 建议 |
 |------|------|------|
-| `RedisTemplate<Object,Object>` 默认 JDK 序列化 | 缓存 key 是二进制乱码，redis-cli 里不可读、难排查 | 配置 `StringRedisSerializer` 作为 key 序列化器 |
-| 密码 MD5 加盐 | MD5 已被证明不安全，易被彩虹表攻击 | 换 BCrypt（需兼容存量密码） |
+| `RedisTemplate<Object,Object>` 默认 JDK 序列化 | 概览缓存的 key 是二进制乱码，redis-cli 里不可读、难排查（消息队列已改用 JSON + StringRedisTemplate） | 配置 `StringRedisSerializer` 作为 key 序列化器 |
 | 项目内存在两套分页机制 | PageHelper 与 MyBatis-Plus 分页插件同时生效会导致 SQL 出现**两个 LIMIT** | 统一使用 MyBatis-Plus 分页 |
+| Redis 队列没有 ACK 机制 | 消息出队后若落库失败会丢失（日志场景可接受） | 用 `RPOPLPUSH` 转入备份队列做补偿，或换成 RabbitMQ 手动 ACK |
 | 缺少参数校验 | 非法入参直接进业务层 | Controller 加 `@Validated` + JSR-303 注解 |
 | 缺少单元测试 | 改动无法快速验证 | 补 Service 层单测 + MockMvc 接口测试 |
 | 无接口文档 | 前后端联调靠口头约定 | 引入 Knife4j / Swagger |
+| `user` 模块接口不完整 | 前端调用了 `GET /users/{id}`、`GET /users/role/{id}`，后端尚未实现 | 按前端调用补齐这两个接口 |
 
 ---
 
