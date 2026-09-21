@@ -46,10 +46,6 @@
 jm-parent/                                   父工程（统一依赖版本管理）
 ├── pom.xml                                  dependencyManagement 统一版本
 ├── README.md                                项目说明（架构 / 表设计 / 接口清单 / 启动步骤）
-├── db/
-│   └── schema.sql                           建库建表脚本（11 张表）
-├── docs/
-│   └── 项目亮点与实现方法.md                 进阶能力详解 + 面试追问与答法（学习/面试用）
 ├── jm-common/                               通用模块
 │   └── src/main/java/
 │       ├── com/djh/Result.java              统一响应封装
@@ -181,7 +177,7 @@ stateDiagram-v2
 
 ## 六、数据库设计
 
-> 完整建表语句见 [`db/schema.sql`](db/schema.sql)
+> 表结构如下（如需完整 DDL，可用 `mysqldump --no-data --default-character-set=utf8mb4 cpjm-parent > schema.sql` 从已有库导出）
 
 | 表名 | 说明 | 关键字段 |
 |------|------|---------|
@@ -332,8 +328,9 @@ erDiagram
 # 1. 创建数据库（注意库名带连字符，SQL 中需用反引号）
 mysql -uroot -p -e "CREATE DATABASE IF NOT EXISTS \`cpjm-parent\` DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 
-# 2. 导入表结构
-mysql -uroot -p --default-character-set=utf8mb4 cpjm-parent < db/schema.sql
+# 2. 建表：参考「六、数据库设计」章节创建 11 张表
+#    如需从已有环境的库导出结构作参考：
+#    mysqldump -uroot -p --no-data --default-character-set=utf8mb4 cpjm-parent > schema.sql
 ```
 
 ### 8.3 启动 Redis
@@ -472,9 +469,6 @@ curl http://localhost:8080/clues?page=1&pageSize=10 -H "token: <上一步返回�
 ---
 
 ## 九、项目亮点与实现思路
-
-> 每个亮点更详细的「问题背景 → 实现思路 → 关键代码 → 实测结果 → 面试追问怎么答」，
-> 见 [`docs/项目亮点与实现方法.md`](docs/项目亮点与实现方法.md)
 
 ### 9.1 ★ 自研 Spring Boot Starter（阿里云 OSS）
 
