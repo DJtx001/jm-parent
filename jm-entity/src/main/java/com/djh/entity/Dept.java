@@ -1,6 +1,5 @@
 package com.djh.entity;
 
-import jdk.jfr.DataAmount;
 import lombok.Data;
 
 import java.time.LocalDateTime;

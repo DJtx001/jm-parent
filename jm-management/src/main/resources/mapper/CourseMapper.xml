@@ -3,35 +3,65 @@
 
 <mapper namespace="com.djh.mapper.CourseMapper">
 
-
+<!--通过条件查询课程-->
     <select id="getCourseBySubject" resultType="com.djh.entity.Course">
         select * from courses
         <where>
-        <if test="name != null and name !='' ">
-            and name like concat('%',#{name},'%')
-        </if>
-        <if test="subject != null">
-            and subject = #{subject}
-        </if>
-        <if test="target !=null">
-            and target = #{target}
-        </if>
+            <if test="name != null and name !='' ">
+                and name like concat('%',#{name},'%')
+            </if>
+            <if test="subject != null">
+                and subject = #{subject}
+            </if>
+            <if test="target !=null">
+                and target = #{target}
+            </if>
         </where>
     </select>
-
-    <select id ="getCourseByPage" resultType="com.djh.entity.Course">
+<!--通过页码查询课程-->
+    <select id="getCourseByPage" resultType="com.djh.entity.Course">
         select * from courses
         <where>
-        <if test = "name != null and name != ''">
-            and name = #{name}
-        </if>
-        <if test ="subject != null">
-            and subject = #{subject}
-        </if>
-        <if test="target != null">
-            and target = #{target}
-        </if>
+            <if test="name != null and name != ''">
+                and name like concat('%',#{name},'%')
+            </if>
+            <if test="subject != null">
+                and subject = #{subject}
+            </if>
+            <if test="target != null">
+                and target = #{target}
+            </if>
         </where>
     </select>
-
+<!--查询所有课程-->
+    <select id="getAllCourse" resultType="com.djh.entity.Course">
+        select * from courses
+    </select>
+<!--    修改课程-->
+<update id="updateCourseById" >
+update courses
+<set>
+    <if test="name != null and name != '' ">
+        name = #{name},
+    </if>
+    <if test="subject != null">
+        subject = #{subject},
+    </if>
+    <if test="price != null">
+        price = #{price},
+    </if>
+    <if test="target != null">
+        target = #{target},
+    </if>
+    <if test="description != null and description !='' ">
+        description = #{description},
+    </if>
+    <if test ="createTime != null">
+        create_time = #{createTime},
+    </if>
+    <if test="updateTime != null">
+        update_time = #{updateTime},
+    </if>
+</set> where id = #{id}
+</update>
 </mapper>

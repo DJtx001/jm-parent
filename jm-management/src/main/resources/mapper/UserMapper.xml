@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.djh.mapper.UserMapper">
+<!--    分页查找-->
+    <select id = "getUserByPage" resultType="com.djh.entity.User">
+        select u.*,d.name as deptName,r.name as roleName
+        from user u
+        left join department d on u.dept_id = d.id
+        left join role r on u.role_id = r.id
+        <where>
+            <if test="name != null and name != '' ">
+               and u.name like concat('%',#{name},'%')
+            </if>
+            <if test="phone != null and phone != '' ">
+                and u.phone like concat('%',#{phone},'%')
+            </if>
+            <if test="deptId != null">
+                and u.dept_id = #{deptId}
+            </if>
+            <if test="status != null">
+                and u.status = #{status}
+            </if>
+        </where> order by u.update_time desc
+    </select>
+<!--增加 用户-->
+    <insert id = "insertUser">
+        insert into user(username,name,phone,email,gender,status,dept_id,role_id,image,remark,create_time,update_time)
+        values(#{username},#{name},#{phone},#{email},#{gender},#{status},#{deptId},#{roleId},#{image},#{remark},#{createTime},#{updateTime})
+    </insert>
+<!--    删除用户-->
+    <delete id="deleteUser">
+        delete
+        from user
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+<!--    修改用户-->
+    <update id="updateUser">
+        update user
+        <set>
+            <if test ="username != null">
+                username = #{username},
+            </if>
+            <if test ="name != null">
+                name = #{name},
+            </if>
+            <if test ="phone != null">
+                phone = #{phone},
+            </if>
+            <if test ="email != null">
+                email = #{email},
+            </if>
+            <if test ="gender != null">
+                gender = #{gender},
+            </if>
+            <if test ="status != null">
+                status = #{status},
+            </if>
+            <if test ="deptId != null">
+                dept_id = #{deptId},
+            </if>
+            <if test ="roleId != null">
+                role_id = #{roleId},
+            </if>
+            <if test ="image != null">
+                image = #{image},
+            </if>
+            <if test ="remark != null">
+                remark = #{remark},
+            </if>
+            <if test ="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test ="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+        </set> where id = #{id}
+    </update>
+<!--    登入界面验证-->
+    <select id="getUserByUsername" resultType="com.djh.entity.User">
+        select u.* ,r.label as roleLabel from user u left join role r on u.role_id = r.id
+        where Username = #{username}
+    </select>
+</mapper>

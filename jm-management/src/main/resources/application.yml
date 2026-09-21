@@ -7,8 +7,15 @@ spring:
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-mybatis:
-  mapper-locations: classpath*:mapper/*.xml
+mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+aliyun:
+  oss:
+    endpoint: https://oss-cn-beijing.aliyuncs.com
+    bucketName: java422-web-ai

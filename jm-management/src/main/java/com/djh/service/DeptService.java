@@ -2,8 +2,8 @@ package com.djh.service;
 
 import com.djh.PageResult;
 import com.djh.entity.Dept;
-import com.github.pagehelper.Page;
-import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 public interface DeptService {
 //    增加 部门
@@ -14,5 +14,9 @@ public interface DeptService {
     Dept getDeptById(Integer id);
 //    分页查找
     PageResult<Dept> getDeptByPage(String name, Integer status, Integer page, Integer pageSize);
+//   根据id 删除 部门
+    void deleteDept(Integer id);
+//    查询所有 部门
+    List<Dept> getAllDept();
 }
 

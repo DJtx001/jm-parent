@@ -14,12 +14,12 @@ public class CourseController {
 
     //根据页码查询课程
     @GetMapping("/courses")
-    public  Result getcourseByPage(@RequestParam(value = "name",required = false)String name,
-                                   @RequestParam(value = "subject",required = false)Integer subject,
-                                   @RequestParam(value = "target",required = false)Integer target,
-                                   @RequestParam(value = "page",required = false,defaultValue = "1")Integer page,
-                                   @RequestParam(value = "pageSize",required = false,defaultValue = "10")Integer pageSize
-                                   ){
+    public Result getcourseByPage(@RequestParam(value = "name", required = false) String name,
+                                  @RequestParam(value = "subject", required = false) Integer subject,
+                                  @RequestParam(value = "target", required = false) Integer target,
+                                  @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
+                                  @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize
+    ) {
         PageResult<Course> courseByPage = courseService.getCourseByPage(name, subject, target, page, pageSize);
 
         return Result.success(courseByPage);
@@ -45,9 +45,19 @@ public class CourseController {
         return Result.success(courseService.getCourseById(id));
     }
 
-    //通过条件查询课程
-    @GetMapping("/courses/search")
-    public Result getCourseBySubject(@RequestParam(required = false) String name, @RequestParam(required = false) Integer subject, @RequestParam(required = false) Integer target) {
-        return Result.success(courseService.getCourseBySubject(name, subject, target));
+
+
+    //修改课程
+    @PutMapping("/courses")
+    public Result updateCourseById(@RequestBody Course course) {
+        courseService.updateCourseById(course);
+        return Result.success();
     }
+
+    //查询所有课程
+    @GetMapping("/courses/list")
+    public Result getAllCourse() {
+        return Result.success(courseService.getAllCourse());
+    }
+
 }

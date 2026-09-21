@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class DeptServiceImpl implements DeptService {
@@ -23,21 +24,7 @@ public class DeptServiceImpl implements DeptService {
         dept.setUpdateTime(now);
         deptMapper.addDept(dept);
     }
-//    @Override
-//    public PageResult<Dept> getDepts(String name, Integer status, Integer page, Integer pageSize) {
-//        Integer deptCount = deptMapper.getDeptCount(name, status);
-//        PageResult<Dept> pageResult = new PageResult<>(deptCount, deptMapper.getDepts(name, status, page, pageSize));
-//        return pageResult;
-//    }
-//
-//    @Override
-//    public PageResult<Dept> getDeptsByPage(String  name,Integer status,Integer page,Integer size) {
-//        PageHelper.startPage(page, size);
-//        PageInfo<Dept> pageInfo = new PageInfo<>(deptMapper.getDeptByPageHepler(name, status));
-//        PageResult<Dept> pageResult = new PageResult<>(pageInfo.getTotal(), pageInfo.getList());
-//        return pageResult;
-//    }
-//    修改部门信息
+//修改部门信息
     @Override
     public void updateDept(Dept dept) {
         dept.setUpdateTime(LocalDateTime.now());
@@ -55,6 +42,17 @@ public class DeptServiceImpl implements DeptService {
         PageInfo pageInfo = new PageInfo<>(deptMapper.getDeptByPage(name, status));
         PageResult pageResult = new PageResult(pageInfo.getTotal(),pageInfo.getList());
         return pageResult;
+    }
+//删除部门信息
+    @Override
+    public void deleteDept(Integer id) {
+        deptMapper.deleteDept(id);
+    }
+//查询所有部门信息
+    @Override
+    public List<Dept> getAllDept() {
+        List<Dept> allDept = deptMapper.getAllDept();
+        return allDept;
     }
 
 

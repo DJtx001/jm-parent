@@ -1,5 +1,6 @@
 package com.djh.controller;
 
+import com.aliyun.oss.AliyunOSSOperator;
 import com.djh.PageResult;
 import com.djh.Result;
 import com.djh.entity.Activity;
@@ -14,6 +15,8 @@ public class ActivityController {
     //    依赖注入
     @Autowired
     private ActivityService activityService;
+    @Autowired
+    private AliyunOSSOperator aliyunOSSOperator;
 
     //根据条件查询活动 分页查询
     @GetMapping("/activities")
@@ -23,7 +26,7 @@ public class ActivityController {
                                     @RequestParam(required = false, defaultValue = "1") Integer page,
                                     @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
-        PageResult<Activity> pageResult = activityService.getActivityByPage(channel, type, status, page, pageSize);
+        PageResult<Activity> pageResult = activityService.getActivityByPage(channel, type, page, pageSize);
         return Result.success(pageResult);
     }
 
@@ -57,8 +60,8 @@ public class ActivityController {
 
     //根据类型查询活动
     @GetMapping("/activities/type/{type}")
-    public Result getActivityByType(@RequestParam(required = false) Integer cannel, @PathVariable Integer type) {
-        List<Activity> activityByType = activityService.getActivityByType(cannel, type);
+    public Result getActivityByType(@PathVariable Integer type) {
+        List<Activity> activityByType = activityService.getActivityByType(type);
         return Result.success(activityByType);
     }
 }

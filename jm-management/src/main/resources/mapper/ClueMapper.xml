@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.djh.mapper.ClueMapper">
+
+    <!-- 线索列表 -->
+    <select id="listClues" resultType="com.djh.entity.Clue">
+        select
+        c.*,
+        u.name as assign_name
+        from clue c
+        left join user u on c.user_id = u.id
+        <where>
+            <if test="clueQueryDto.clueId != null">
+                and c.id = #{clueQueryDto.clueId}
+            </if>
+            <if test="clueQueryDto.phone != null and clueQueryDto.phone != ''">
+                and c.phone like '%${clueQueryDto.phone}%'
+            </if>
+            <if test="clueQueryDto.status != null">
+                and c.status = #{clueQueryDto.status}
+            </if>
+            <if test="clueQueryDto.channel != null">
+                and c.channel = #{clueQueryDto.channel}
+            </if>
+            <if test="clueQueryDto.assignName != null and clueQueryDto.assignName != ''">
+                and u.name like concat('%', #{clueQueryDto.assignName}, '%')
+            </if>
+            AND c.status not in (4,5)
+        </where>
+        order by c.update_time desc
+    </select>
+
+    <!--定义ResultMap封装线索详情-->
+    <resultMap id="clueResultMap" type="com.djh.entity.Clue">
+        <id property="id" column="id"/>
+        <result property="phone" column="phone"/>
+        <result property="channel" column="channel"/>
+        <result property="activityId" column="activity_id"/>
+        <result property="name" column="name"/>
+        <result property="gender" column="gender"/>
+        <result property="age" column="age"/>
+        <result property="wechat" column="wechat"/>
+        <result property="qq" column="qq"/>
+        <result property="userId" column="user_id"/>
+        <result property="status" column="status"/>
+        <result property="subject" column="subject"/>
+        <result property="level" column="level"/>
+        <result property="nextTime" column="next_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <collection property="trackRecords" ofType="com.djh.entity.ClueTrackRecord">
+            <id property="id" column="tr_id"/>
+            <result property="clueId" column="tr_clue_id"/>
+            <result property="userId" column="tr_user_id"/>
+            <result property="subject" column="tr_subject"/>
+            <result property="level" column="tr_level"/>
+            <result property="record" column="tr_record"/>
+            <result property="nextTime" column="tr_next_time"/>
+            <result property="type" column="tr_type"/>
+            <result property="falseReason" column="tr_false_reason"/>
+            <result property="createTime" column="tr_create_time"/>
+            <result property="assignName" column="tr_assign_name"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据ID查询线索详细信息 -->
+    <select id="getClueById" resultMap="clueResultMap">
+        SELECT
+            c.id,
+            c.phone,
+            c.channel,
+            c.activity_id,
+            c.name,
+            c.gender,
+            c.age,
+            c.wechat,
+            c.qq,
+            c.user_id,
+            c.status,
+            c.subject,
+            c.level,
+            c.next_time,
+            c.create_time,
+            c.update_time,
+            tr.id tr_id,
+            tr.clue_id tr_clue_id,
+            tr.user_id tr_user_id,
+            tr.subject tr_subject,
+            tr.level tr_level,
+            tr.record tr_record,
+            tr.next_time tr_next_time,
+            tr.type tr_type,
+            tr.false_reason tr_false_reason,
+            tr.create_time tr_create_time,
+            u.name tr_assign_name
+        FROM clue c
+                 LEFT JOIN clue_track_record tr ON c.id = tr.clue_id
+                 LEFT JOIN user u ON tr.user_id = u.id
+        WHERE c.id = #{id}
+        ORDER BY tr.create_time DESC
+    </select>
+
+    <!-- 获取线索总览数据 -->
+    <select id="getClueOverviewData" resultType="com.djh.vo.OverviewVO">
+        select
+            count(1) as clue_total,
+            count(if(status = 1, 1, null)) as clue_wait_allot,
+            count(if(status = 2, 1, null)) as clue_wait_follow,
+            count(if(status = 3, 1, null)) as clue_following,
+            count(if(status = 4, 1, null)) as clue_false,
+            count(if(status = 5, 1, null)) as clue_convert_business
+        from clue;
+    </select>
+</mapper>

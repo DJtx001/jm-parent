@@ -12,8 +12,13 @@ public interface CourseService {
     void deleteCourseById(Integer id);
 //    通过id查询方法
     Course getCourseById(Integer id);
-//    通过条件查询课程
-    List<Course> getCourseBySubject(String name,Integer subject,Integer target);
 
+//分页查找
     PageResult<Course> getCourseByPage(String name, Integer subject, Integer target,Integer page, Integer pageSize);
+//    查询所有
+    List<Course> getAllCourse();
+//    修改课程
+    void updateCourseById(Course course);
+
+
 }

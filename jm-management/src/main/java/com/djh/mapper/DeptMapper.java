@@ -1,10 +1,7 @@
 package com.djh.mapper;
 
 import com.djh.entity.Dept;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 
 import java.util.List;
@@ -23,8 +20,14 @@ public interface DeptMapper {
     @Select("select * from department where id=#{id}")
     Dept getDeptById(Integer id);
 
-//    分页查找
-    List<Dept> getDeptByPage(String name,Integer status);
+    //    分页查找
+    List<Dept> getDeptByPage(String name, Integer status);
 
+//    删除 部门
+    @Delete("delete from department where id = #{id}")
+    void deleteDept(Integer id);
+//查询所有 部门
+    @Select("select * from department")
+    List<Dept> getAllDept();
 
 }

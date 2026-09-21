@@ -32,6 +32,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>0.9.1</version>
+            </dependency>
+            <dependency>
                 <groupId>com.github.pagehelper</groupId>
                 <artifactId>pagehelper-spring-boot-starter</artifactId>
                 <version>${pagehelper.version}</version>
@@ -62,12 +67,17 @@
                 <version>${mybatis.version}</version>
             </dependency>
 
+<!--            <dependency>-->
+<!--                <groupId>org.mybatis.spring.boot</groupId>-->
+<!--                <artifactId>mybatis-spring-boot-starter-test</artifactId>-->
+<!--&lt;!&ndash;                <version>3.0.3</version>&ndash;&gt;-->
+<!--                <version>${mybatis.version}</version>-->
+<!--                <scope>test</scope>-->
+<!--            </dependency>-->
             <dependency>
-                <groupId>org.mybatis.spring.boot</groupId>
-                <artifactId>mybatis-spring-boot-starter-test</artifactId>
-<!--                <version>3.0.3</version>-->
-                <version>${mybatis.version}</version>
-                <scope>test</scope>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>3.5.8</version>
             </dependency>
 
             <dependency>

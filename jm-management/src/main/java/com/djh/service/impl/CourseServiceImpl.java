@@ -1,11 +1,13 @@
 package com.djh.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.djh.PageResult;
 import com.djh.entity.Course;
 import com.djh.mapper.CourseMapper;
 import com.djh.service.CourseService;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,35 +25,50 @@ public class CourseServiceImpl implements CourseService {
         LocalDateTime now = LocalDateTime.now();
         course.setUpdateTime(now);
         course.setCreateTime(now);
-        courseMapper.insertCourse(course);
+        courseMapper.insert(course);
     }
 
     //通过id删除课程
     @Override
     public void deleteCourseById(Integer id) {
-        courseMapper.deleteCourseById(id);
+        courseMapper.deleteById(id);
     }
 
 
     //根据id查询方法
     @Override
     public Course getCourseById(Integer id) {
-        return courseMapper.getCourseById(id);
+        return courseMapper.selectById(id);
     }
 
-    //根据条件查询课程
-    @Override
-    public List<Course> getCourseBySubject(String name, Integer subject, Integer target) {
-        List<Course> courseBySubject = courseMapper.getCourseBySubject(name, subject, target);
-        return courseBySubject;
-    }
+
 
     // 分页查询课程
     @Override
     public PageResult<Course> getCourseByPage(String name, Integer subject, Integer target, Integer page, Integer pageSize) {
         PageHelper.startPage(page, pageSize);
-        PageInfo pageInfo = new PageInfo(courseMapper.getCourseByPage(name, subject, target));
-        PageResult<Course> pageResult = new PageResult<>(pageInfo.getTotal(), pageInfo.getList());
-        return pageResult;
+
+
+//        QueryWrapper<Course> queryWrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<Course> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(name != null && !name.isEmpty(), Course::getName, name);
+        queryWrapper.eq(subject != null, Course::getSubject, subject);
+        queryWrapper.eq(target != null, Course::getTarget, target);
+        List<Course> courses = courseMapper.selectList(queryWrapper);
+
+
+        Page<Course> pageInfo = (Page<Course>) courses;
+        return new PageResult<>(pageInfo.getTotal(), pageInfo.getResult());
+    }
+//查询所有课程
+    @Override
+    public List<Course> getAllCourse() {
+        return courseMapper.selectList(null);
+    }
+//修改课程
+    @Override
+    public void updateCourseById(Course course) {
+       courseMapper.updateById(course);
+       course.setUpdateTime(LocalDateTime.now());
     }
 }

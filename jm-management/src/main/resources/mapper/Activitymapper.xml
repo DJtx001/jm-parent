@@ -37,9 +37,6 @@
     <select id="getActivityByType" resultType="com.djh.entity.Activity">
         select * from activity
         <where>
-            <if test="channel != null">
-                and channel = #{channel}
-            </if>
             <if test="type != null">
                 and type = #{type}
             </if>
@@ -55,6 +52,7 @@
             <if test="type != null">
                 and type = #{type}
             </if>
+
         </where>
     </select>
 

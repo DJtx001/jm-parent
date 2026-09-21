@@ -6,6 +6,8 @@ import com.djh.service.DeptService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class DeptController {
     @Autowired
@@ -40,4 +42,17 @@ public class DeptController {
     ) {
         return Result.success(deptService.getDeptByPage(name,status,page,pageSize));
     }
+//    删除部门按照id
+    @DeleteMapping("/depts/{id}")
+    public Result deleteDept(@PathVariable Integer id) {
+        deptService.deleteDept(id);
+        return Result.success();
+    }
+//    查询所有 部门
+    @GetMapping("/depts/list")
+    public Result getDepts() {
+        List<Dept> allDept = deptService.getAllDept();
+        return Result.success(allDept);
+    }
+
 }

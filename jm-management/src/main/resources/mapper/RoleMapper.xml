@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.djh.mapper.RoleMapper">
+    <!--    //    分页查找-->
+    <select id="getRoleByPage" resultType="com.djh.entity.Role">
+        select * from role
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%',#{name},'%')
+            </if>
+            <if test="label != null and label != '' ">
+                and label like concat('%',#{label},'%')
+            </if>
+        </where>
+    </select>
+    <!--    //    删除角色-->
+    <delete id="deleteRoleById">
+        delete from role where id = #{id}
+    </delete>
+    <!--    //    根据id查询角色-->
+    <select id = "getRoleById" resultType="com.djh.entity.Role">
+        select * from role where id = #{id}
+    </select>
+    <!--    //    添加角色-->
+    <insert id="insertRole">
+        insert into role (name,label,remark,create_time,update_time)
+        values(#{name},#{label},#{remark},#{createTime},#{updateTime})
+    </insert>
+    <!--    //    修改角色-->
+    <update id="updateRole">
+        update role
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="label != null and label != ''">
+                label = #{label},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if> where id = #{id}
+        </set>
+    </update>
+    <!--    //    查询所有角色-->
+    <select id="getAllRole" resultType="com.djh.entity.Role">
+        select * from role
+    </select>
+</mapper>

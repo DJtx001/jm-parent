@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.djh.mapper.BusinessMapper">
+    <!-- 获取商机概览数据 -->
+    <select id="getBusinessOverviewData" resultType="com.djh.vo.OverviewVO">
+        select
+            count(1) as business_total,
+            count(if(status = 1, 1, null)) as business_wait_allot,
+            count(if(status = 2, 1, null)) as business_wait_follow,
+            count(if(status = 3, 1, null)) as business_following,
+            count(if(status = 4, 1, null)) as business_false,
+            count(if(status = 5, 1, null)) as business_convert_customer
+        from business;
+    </select>
+</mapper>
