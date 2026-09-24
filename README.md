@@ -1,6 +1,6 @@
 # 学途管家 · CRM 客户关系管理系统
 
-> 基于 **Spring Boot 3 + MyBatis-Plus + Vue3** 的前后端分离 CRM 系统，打通「**线索 → 商机 → 客户**」完整销售转化链路。
+> <span translate="no">基于 **Spring Boot 3 + MyBatis-Plus + Vue3** 的前后端分离 CRM 系统，打通「**线索 → 商机 → 客户**」完整销售转化链路。</span>
 
 ## 一、项目简介
 
@@ -16,15 +16,15 @@
 
 | 层次 | 技术 |
 |------|------|
-| 语言 / 框架 | Java 17 · Spring Boot 3.5 · Spring MVC · AOP · Scheduling |
-| 持久层 | MyBatis-Plus 3.5（单表 CRUD + 分页）· MyBatis XML（多表关联、嵌套 resultMap） |
-| 数据库 | MySQL 8 · HikariCP |
-| 缓存 / 队列 | Redis 7 · Spring Data Redis（概览缓存、异步日志队列） |
-| 分布式锁 | Redisson 3.27 |
-| 鉴权 | JWT (jjwt) · HandlerInterceptor · ThreadLocal |
-| 密码加密 | Spring Security Crypto（BCrypt，兼容历史 MD5 平滑迁移） |
-| 对象存储 | 阿里云 OSS SDK（封装为自研 Starter） |
-| 前端 / 部署 | Vue3 + ElementPlus · Nginx（静态资源 + `/api` 反向代理） |
+| <span translate="no">语言 / 框架</span> | <span translate="no">Java 17 · Spring Boot 3.5 · Spring MVC · AOP · 定时调度</span> |
+| <span translate="no">持久层</span> | <span translate="no">MyBatis-Plus 3.5（单表 CRUD + 分页）· MyBatis XML（多表关联、嵌套 resultMap）</span> |
+| <span translate="no">数据库</span> | <span translate="no">MySQL 8 · HikariCP</span> |
+| <span translate="no">缓存 / 队列</span> | <span translate="no">Redis 7 · Spring Data Redis（概览缓存、异步日志队列）</span> |
+| <span translate="no">分布式锁</span> | <span translate="no">Redisson 3.27</span> |
+| <span translate="no">鉴权</span> | <span translate="no">JWT (jjwt) · HandlerInterceptor · ThreadLocal</span> |
+| <span translate="no">密码加密</span> | <span translate="no">Spring Security Crypto（BCrypt，兼容历史 MD5 平滑迁移）</span> |
+| <span translate="no">对象存储</span> | <span translate="no">阿里云 OSS SDK（封装为自研 Starter）</span> |
+| <span translate="no">前端 / 部署</span> | <span translate="no">Vue3 + Element Plus · Nginx（静态资源 + /api 反向代理）</span> |
 
 ## 三、系统架构
 
