@@ -8,8 +8,8 @@
         </encoder>
     </appender>
 
-    <!-- 日志输出级别 -->
-    <root level="debug">
+    <!-- 日志输出级别：info 只输出业务日志与错误，避免 Netty/Lettuce 的底层 DEBUG 刷屏 -->
+    <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

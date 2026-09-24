@@ -5,6 +5,7 @@ import com.djh.mapper.OperateLogMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -42,19 +43,45 @@ public class OperateLogConsumer {
     private OperateLogMapper operateLogMapper;
 
     /**
+     * 上一轮是否因 Redis 不可用而失败。
+     * 用于只在「故障发生」和「故障恢复」的瞬间各记一条日志，
+     * 避免 Redis 长时间不可用时每轮都刷一次异常堆栈。
+     */
+    private volatile boolean redisUnavailable = false;
+
+    /**
      * 批量消费操作日志队列
      * <p>消费间隔可通过 operate.log.consume-interval-ms 配置，默认 5 秒
      */
     @Scheduled(fixedDelayString = "${operate.log.consume-interval-ms:5000}")
     public void consume() {
+        // 1. 先从队列取消息。Redis 不可用属于环境故障，单独处理，不打印完整堆栈
+        List<String> messages;
         try {
             // RPOP key count：一次最多取 BATCH_SIZE 条，队列为空时返回空集合
-            List<String> messages = stringRedisTemplate.opsForList()
+            messages = stringRedisTemplate.opsForList()
                     .rightPop(OperateLogProducer.LOG_QUEUE_KEY, BATCH_SIZE);
-            if (messages == null || messages.isEmpty()) {
-                return;
+            if (redisUnavailable) {
+                redisUnavailable = false;
+                log.info("Redis 已恢复，操作日志消费继续");
             }
+        } catch (RedisConnectionFailureException e) {
+            if (!redisUnavailable) {
+                redisUnavailable = true;
+                log.warn("Redis 暂不可用，操作日志消费暂停（恢复后自动继续）: {}", e.getMessage());
+            }
+            return;
+        } catch (Exception e) {
+            log.error("操作日志消费失败（读取队列异常）", e);
+            return;
+        }
 
+        if (messages == null || messages.isEmpty()) {
+            return;
+        }
+
+        // 2. 反序列化 + 批量落库。这部分的异常才是真正需要完整堆栈定位的问题
+        try {
             List<OperateLog> logs = new ArrayList<>(messages.size());
             for (String message : messages) {
                 try {
@@ -71,7 +98,7 @@ public class OperateLogConsumer {
             operateLogMapper.insertBatch(logs);
             log.info("操作日志异步落库完成，本批 {} 条", logs.size());
         } catch (Exception e) {
-            log.error("操作日志消费失败", e);
+            log.error("操作日志落库失败，本批 {} 条", messages.size(), e);
         }
     }
 }
